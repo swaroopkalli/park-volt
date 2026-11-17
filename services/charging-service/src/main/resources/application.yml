@@ -18,3 +18,9 @@ management:
     web:
       exposure:
         include: health
+booking:
+  url: ${BOOKING_URL:http://localhost:8002}
+charging:
+  speed-multiplier: ${CHARGING_SPEED_MULTIPLIER:60}
+  rate-per-kwh: 8
+  default-target-kwh: 20

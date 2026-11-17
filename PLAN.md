@@ -6,7 +6,7 @@ NOTE: paste the full plan text here; only the progress checklist is kept below.
 - [x] P1 Foundation and Postgres (Postgres on host port 5433 because 5432 was taken locally)
 - [x] P2 Parking service
 - [x] P3 Booking service and integration gate
-- [ ] P4 Charging service and integration gate
+- [x] P4 Charging service and integration gate
 - [ ] P5 API Gateway
 - [ ] P6 Docker Compose
 - [ ] P7 Flutter functional UI
