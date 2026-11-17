@@ -8,6 +8,7 @@ import '../../core/data.dart';
 import '../../core/theme.dart';
 import '../../models/models.dart';
 import '../../widgets/common.dart';
+import '../../widgets/motion.dart';
 
 class BookingsPage extends ConsumerWidget {
   const BookingsPage({super.key});
@@ -26,7 +27,10 @@ class BookingsPage extends ConsumerWidget {
           onRetry: () => ref.invalidate(bookingsProvider),
           isEmpty: (l) => l.isEmpty,
           emptyText: 'No bookings yet. Reserve a slot from the Parking tab.',
-          builder: (list) => Column(children: [for (final b in list) Padding(padding: const EdgeInsets.only(bottom: 10), child: BookingCard(booking: b))]),
+          builder: (list) => Column(children: [
+            for (var i = 0; i < list.length; i++)
+              Padding(padding: const EdgeInsets.only(bottom: 10), child: _Swipeable(booking: list[i]).enter(context, index: i, stepMs: 50)),
+          ]),
         ),
       ]),
     );
@@ -73,6 +77,47 @@ class BookingCard extends ConsumerWidget {
             ),
         ]),
       ),
+    );
+  }
+}
+
+/// Swipe left on a CONFIRMED booking to cancel it (with confirmation).
+class _Swipeable extends ConsumerWidget {
+  const _Swipeable({required this.booking});
+  final Booking booking;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final b = booking;
+    if (b.status != 'CONFIRMED') return BookingCard(booking: b);
+    return Dismissible(
+      key: ValueKey('booking-${b.id}'),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        decoration: BoxDecoration(color: AppColors.red, borderRadius: BorderRadius.circular(12)),
+        child: const Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.end, children: [Icon(Icons.cancel, color: Colors.white), SizedBox(width: 8), Text('Cancel', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700))]),
+      ),
+      confirmDismiss: (_) async {
+        final yes = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text('Cancel booking #${b.id}?'),
+            content: Text('Slot ${b.slotNumber} will be released.'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Keep')),
+              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Cancel booking')),
+            ],
+          ),
+        );
+        if (yes != true || !context.mounted) return false;
+        await runAction(context, () => ref.read(apiProvider).bookingAction(b.id, 'cancel'), success: 'Booking #${b.id} cancelled');
+        ref.invalidate(bookingsProvider);
+        ref.invalidate(slotsProvider);
+        return false; // list refreshes from the server; avoid a stale dismissed item
+      },
+      child: BookingCard(booking: b),
     );
   }
 }

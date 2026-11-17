@@ -10,9 +10,24 @@ import '../features/charging/charging_page.dart';
 import '../features/dashboard/dashboard_page.dart';
 import '../features/parking/parking_page.dart';
 import '../features/shell/shell.dart';
-import 'auth.dart';
+import 'package:animations/animations.dart';
 
-final routerProvider = Provider<GoRouter>((ref) {
+import 'auth.dart';
+import 'theme.dart';
+
+/// Fade-through transition between sections (skipped when reduced motion is requested).
+GoRoute _page(String path, Widget child) => GoRoute(
+      path: path,
+      pageBuilder: (context, state) => CustomTransitionPage<void>(
+        key: state.pageKey,
+        child: child,
+        transitionDuration: MediaQuery.maybeOf(context)?.disableAnimations == true ? Duration.zero : const Duration(milliseconds: 300),
+        transitionsBuilder: (context, animation, secondary, c) =>
+            FadeThroughTransition(animation: animation, secondaryAnimation: secondary, fillColor: AppColors.bg, child: c),
+      ),
+    );
+
+final routerProvider =Provider<GoRouter>((ref) {
   final refresh = ValueNotifier<int>(0);
   ref.listen(userProvider, (_, __) => refresh.value++);
   ref.onDispose(refresh.dispose);
@@ -33,11 +48,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (_, state, child) => AppShell(location: state.matchedLocation, child: child),
         routes: [
-          GoRoute(path: '/dashboard', builder: (_, __) => const DashboardPage()),
-          GoRoute(path: '/parking', builder: (_, __) => const ParkingPage()),
-          GoRoute(path: '/bookings', builder: (_, __) => const BookingsPage()),
-          GoRoute(path: '/charging', builder: (_, __) => const ChargingPage()),
-          GoRoute(path: '/admin', builder: (_, __) => const AdminPage()),
+          _page('/dashboard', const DashboardPage()),
+          _page('/parking', const ParkingPage()),
+          _page('/bookings', const BookingsPage()),
+          _page('/charging', const ChargingPage()),
+          _page('/admin', const AdminPage()),
         ],
       ),
     ],

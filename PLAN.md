@@ -10,5 +10,5 @@ NOTE: paste the full plan text here; only the progress checklist is kept below.
 - [x] P5 API Gateway
 - [x] P6 Docker Compose
 - [ ] P7 Flutter functional UI (code complete, analyze+test+web build pass; browser click-through of demo script still to be verified by user)
-- [ ] P8 Animations and gestures
+- [ ] P8 Animations and gestures (code complete; analyze+responsive tests pass; DevTools frame-rate check and screen recording still to do by user)
 - [ ] P9 Tests, docs, demo rehearsal

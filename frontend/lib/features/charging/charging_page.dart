@@ -8,7 +8,9 @@ import '../../core/data.dart';
 import '../../core/theme.dart';
 import '../../models/models.dart';
 import '../../widgets/common.dart';
+import '../../widgets/motion.dart';
 import '../../widgets/poller.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class ChargingPage extends ConsumerWidget {
   const ChargingPage({super.key});
@@ -41,13 +43,10 @@ class ChargingPage extends ConsumerWidget {
             const SizedBox(height: 8),
             LayoutBuilder(builder: (context, c) {
               final cols = (c.maxWidth / 220).floor().clamp(1, 5);
-              return GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: cols,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 2.0,
+              return GridView(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: cols, mainAxisSpacing: 10, crossAxisSpacing: 10, mainAxisExtent: 96),
                 children: [for (final s in stations.requireValue) _StationCard(station: s)],
               );
             }),
@@ -91,7 +90,7 @@ class _StationCard extends StatelessWidget {
           Row(children: [
             Icon(Icons.ev_station, color: c),
             const SizedBox(width: 6),
-            Text(station.stationName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            Flexible(child: Text(station.stationName, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
             const Spacer(),
             StatusChip(station.status),
           ]),
@@ -160,6 +159,7 @@ class _StartFormState extends ConsumerState<_StartForm> {
               SizedBox(
                 width: 260,
                 child: DropdownButtonFormField<int>(
+                  isExpanded: true,
                   value: bookingId,
                   decoration: const InputDecoration(labelText: 'Booking', border: OutlineInputBorder()),
                   items: [for (final b in eligible) DropdownMenuItem(value: b.id, child: Text('#${b.id} · ${b.slotNumber} · ${b.status}'))],
@@ -169,6 +169,7 @@ class _StartFormState extends ConsumerState<_StartForm> {
               SizedBox(
                 width: 220,
                 child: DropdownButtonFormField<int>(
+                  isExpanded: true,
                   value: stationId,
                   decoration: InputDecoration(labelText: free.isEmpty ? 'No free station' : 'Station', border: const OutlineInputBorder()),
                   items: [for (final s in free) DropdownMenuItem(value: s.id, child: Text('${s.stationName} · ${s.powerKw.toStringAsFixed(0)} kW'))],
@@ -204,26 +205,31 @@ class _LiveSessionCard extends ConsumerWidget {
         padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            const Icon(Icons.bolt, color: Colors.amber),
+            _PulsingBolt(),
             const SizedBox(width: 6),
-            Text('Charging on ${s.stationName}', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
+            Flexible(child: Text('Charging on ${s.stationName}', overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800))),
             const Spacer(),
             Text('#${s.id}', style: const TextStyle(color: Colors.white54)),
           ]),
           const SizedBox(height: 16),
           Wrap(spacing: 32, runSpacing: 8, children: [
-            _Metric('Energy', '${s.energyKwh.toStringAsFixed(2)} kWh'),
-            _Metric('Cost', '₹${s.totalCost.toStringAsFixed(2)}'),
-            _Metric('Power', '${s.powerKw.toStringAsFixed(0)} kW'),
-            _Metric('Target', '${s.targetKwh.toStringAsFixed(0)} kWh'),
+            _Metric('Energy', s.energyKwh, decimals: 2, suffix: ' kWh'),
+            _Metric('Cost', s.totalCost, decimals: 2, prefix: '₹'),
+            _Metric('Power', s.powerKw, suffix: ' kW'),
+            _Metric('Target', s.targetKwh, suffix: ' kWh'),
           ]),
           const SizedBox(height: 16),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(value: s.progressPercent / 100, minHeight: 12, backgroundColor: Colors.white24, color: AppColors.green),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(end: s.progressPercent / 100),
+              duration: motion(context, 900),
+              curve: Curves.easeOut,
+              builder: (_, v, __) => LinearProgressIndicator(value: v, minHeight: 12, backgroundColor: Colors.white24, color: AppColors.green),
+            ),
           ),
           const SizedBox(height: 6),
-          Text('${s.progressPercent.toStringAsFixed(1)}%', style: const TextStyle(color: Colors.white70)),
+          CountText(value: s.progressPercent, decimals: 1, suffix: '%', style: const TextStyle(color: Colors.white70)),
           const SizedBox(height: 12),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.red),
@@ -243,11 +249,23 @@ class _LiveSessionCard extends ConsumerWidget {
 }
 
 class _Metric extends StatelessWidget {
-  const _Metric(this.label, this.value);
-  final String label, value;
+  const _Metric(this.label, this.value, {this.decimals = 0, this.prefix = '', this.suffix = ''});
+  final String label, prefix, suffix;
+  final double value;
+  final int decimals;
   @override
   Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12)),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800)),
+        CountText(value: value, decimals: decimals, prefix: prefix, suffix: suffix, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800)),
       ]);
+}
+
+class _PulsingBolt extends StatelessWidget {
+  const _PulsingBolt();
+  @override
+  Widget build(BuildContext context) {
+    const bolt = Icon(Icons.bolt, color: Colors.amber);
+    if (reduceMotion(context)) return bolt;
+    return bolt.animate(onPlay: (c) => c.repeat(reverse: true)).scale(begin: const Offset(0.9, 0.9), end: const Offset(1.35, 1.35), duration: 700.ms).fade(begin: 0.6, end: 1, duration: 700.ms);
+  }
 }

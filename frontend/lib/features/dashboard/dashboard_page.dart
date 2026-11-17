@@ -6,6 +6,7 @@ import '../../core/auth.dart';
 import '../../core/data.dart';
 import '../../core/theme.dart';
 import '../../widgets/common.dart';
+import '../../widgets/motion.dart';
 import '../../widgets/poller.dart';
 
 class DashboardPage extends ConsumerWidget {
@@ -52,14 +53,11 @@ class DashboardPage extends ConsumerWidget {
           if (errors.isNotEmpty) ErrorBanner(error: errors.first is ApiError ? errors.first : ApiError.from(errors.first), onRetry: refresh),
           LayoutBuilder(builder: (context, c) {
             final cols = c.maxWidth >= 900 ? 3 : (c.maxWidth >= 560 ? 2 : 1);
-            return GridView.count(
+            return GridView(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: cols,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: cols == 1 ? 3.6 : 3.0,
-              children: cards,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: cols, mainAxisSpacing: 12, crossAxisSpacing: 12, mainAxisExtent: 112),
+              children: [for (var i = 0; i < cards.length; i++) cards[i].enter(context, index: i, stepMs: 70)],
             );
           }),
         ]),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/router.dart';
 import 'core/theme.dart';
+import 'widgets/motion.dart';
 
 void main() => runApp(const ProviderScope(child: ParkVoltApp()));
 
@@ -14,6 +15,7 @@ class ParkVoltApp extends ConsumerWidget {
       title: 'ParkVolt',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
+      scrollBehavior: const AppScrollBehavior(),
       routerConfig: ref.watch(routerProvider),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/api.dart';
 import '../core/theme.dart';
+import 'motion.dart';
 
 /// Renders loading / error / data states for an AsyncValue.
 class AsyncView<T> extends StatelessWidget {
@@ -18,7 +19,7 @@ class AsyncView<T> extends StatelessWidget {
     return value.when(
       skipLoadingOnRefresh: true,
       skipLoadingOnReload: true,
-      loading: () => const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator())),
+      loading: () => const SkeletonList(),
       error: (e, _) => ErrorBanner(error: e, onRetry: onRetry),
       data: (d) {
         if (isEmpty != null && isEmpty!(d)) {
@@ -84,7 +85,10 @@ class StatCard extends StatelessWidget {
           const SizedBox(width: 14),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.navy)),
+              if (int.tryParse(value) != null)
+                CountText(value: int.parse(value).toDouble(), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.navy))
+              else
+                Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.navy)),
               Text(label, style: const TextStyle(color: AppColors.grey)),
             ]),
           ),
