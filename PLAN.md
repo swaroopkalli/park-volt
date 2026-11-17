@@ -9,6 +9,6 @@ NOTE: paste the full plan text here; only the progress checklist is kept below.
 - [x] P4 Charging service and integration gate
 - [x] P5 API Gateway
 - [x] P6 Docker Compose
-- [ ] P7 Flutter functional UI
+- [ ] P7 Flutter functional UI (code complete, analyze+test+web build pass; browser click-through of demo script still to be verified by user)
 - [ ] P8 Animations and gestures
 - [ ] P9 Tests, docs, demo rehearsal
