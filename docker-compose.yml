@@ -1,3 +1,6 @@
+x-service-defaults: &svc
+  restart: unless-stopped
+
 services:
   postgres:
     image: postgres:16
@@ -15,5 +18,76 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  parking-service:
+    <<: *svc
+    build: ./services/parking-service
+    container_name: parkvolt-parking
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/parking_db
+    ports: ["8001:8001"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8001/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+
+  booking-service:
+    <<: *svc
+    build: ./services/booking-service
+    container_name: parkvolt-booking
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/booking_db
+      PARKING_URL: http://parking-service:8001
+    ports: ["8002:8002"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8002/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+
+  charging-service:
+    <<: *svc
+    build: ./services/charging-service
+    container_name: parkvolt-charging
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/charging_db
+      BOOKING_URL: http://booking-service:8002
+    ports: ["8003:8003"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8003/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+
+  api-gateway:
+    <<: *svc
+    build: ./api-gateway
+    container_name: parkvolt-gateway
+    environment:
+      PARKING_URL: http://parking-service:8001
+      BOOKING_URL: http://booking-service:8002
+      CHARGING_URL: http://charging-service:8003
+    ports: ["8000:8000"]
+    depends_on:
+      parking-service: { condition: service_healthy }
+      booking-service: { condition: service_healthy }
+      charging-service: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8000/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+
 volumes:
   pgdata:
