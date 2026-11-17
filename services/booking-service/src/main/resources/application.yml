@@ -18,3 +18,9 @@ management:
     web:
       exposure:
         include: health
+parking:
+  url: ${PARKING_URL:http://localhost:8001}
+  rates:
+    regular: 20
+    ev: 30
+    accessible: 20
