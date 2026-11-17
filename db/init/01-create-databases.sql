@@ -1,0 +1,12 @@
+CREATE USER parking_user WITH PASSWORD 'parking_pass';
+CREATE USER booking_user WITH PASSWORD 'booking_pass';
+CREATE USER charging_user WITH PASSWORD 'charging_pass';
+CREATE DATABASE parking_db OWNER parking_user;
+CREATE DATABASE booking_db OWNER booking_user;
+CREATE DATABASE charging_db OWNER charging_user;
+REVOKE CONNECT ON DATABASE parking_db FROM PUBLIC;
+REVOKE CONNECT ON DATABASE booking_db FROM PUBLIC;
+REVOKE CONNECT ON DATABASE charging_db FROM PUBLIC;
+GRANT CONNECT ON DATABASE parking_db TO parking_user;
+GRANT CONNECT ON DATABASE booking_db TO booking_user;
+GRANT CONNECT ON DATABASE charging_db TO charging_user;
