@@ -3,8 +3,45 @@ server:
 spring:
   application:
     name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            exposedHeaders: "*"
+            maxAge: 3600
+      routes:
+        - id: parking-service
+          uri: ${PARKING_URL:http://localhost:8001}
+          predicates:
+            - Path=/api/parking/**
+          filters:
+            - StripPrefix=2
+        - id: booking-service
+          uri: ${BOOKING_URL:http://localhost:8002}
+          predicates:
+            - Path=/api/bookings,/api/bookings/**
+          filters:
+            - RewritePath=/api/bookings(?<seg>.*), /bookings$\{seg}
+        - id: charging-service
+          uri: ${CHARGING_URL:http://localhost:8003}
+          predicates:
+            - Path=/api/charging/**
+          filters:
+            - StripPrefix=2
+      httpclient:
+        connect-timeout: 2000
+        response-timeout: 10s
 management:
   endpoints:
     web:
       exposure:
         include: health
+parkvolt:
+  services:
+    parking: ${PARKING_URL:http://localhost:8001}
+    booking: ${BOOKING_URL:http://localhost:8002}
+    charging: ${CHARGING_URL:http://localhost:8003}

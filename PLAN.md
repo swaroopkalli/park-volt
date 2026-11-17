@@ -7,7 +7,7 @@ NOTE: paste the full plan text here; only the progress checklist is kept below.
 - [x] P2 Parking service
 - [x] P3 Booking service and integration gate
 - [x] P4 Charging service and integration gate
-- [ ] P5 API Gateway
+- [x] P5 API Gateway
 - [ ] P6 Docker Compose
 - [ ] P7 Flutter functional UI
 - [ ] P8 Animations and gestures
