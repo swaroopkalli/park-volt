@@ -1,0 +1,7 @@
+INSERT INTO parking_slots(slot_number, slot_type, status, floor, vehicle_number)
+SELECT 'P' || lpad(n::text, 2, '0'),
+  CASE WHEN n <= 10 THEN 'REGULAR' WHEN n <= 17 THEN 'EV' ELSE 'ACCESSIBLE' END,
+  CASE WHEN n IN (2,5) THEN 'OCCUPIED' WHEN n = 12 THEN 'RESERVED' WHEN n = 9 THEN 'UNAVAILABLE' ELSE 'AVAILABLE' END,
+  CASE WHEN n <= 10 THEN 'G' ELSE '1' END,
+  CASE n WHEN 2 THEN 'KA01AA1111' WHEN 5 THEN 'KA05BB5555' WHEN 12 THEN 'KA12CC1212' END
+FROM generate_series(1, 20) AS n;

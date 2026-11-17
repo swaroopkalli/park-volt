@@ -1,0 +1,7 @@
+CREATE TABLE parking_slots(
+  id BIGSERIAL PRIMARY KEY, slot_number VARCHAR(10) UNIQUE NOT NULL,
+  slot_type VARCHAR(12) NOT NULL, status VARCHAR(12) NOT NULL DEFAULT 'AVAILABLE',
+  floor VARCHAR(10) NOT NULL, vehicle_number VARCHAR(20));
+CREATE TABLE vehicles(
+  id BIGSERIAL PRIMARY KEY, user_id VARCHAR(40) NOT NULL,
+  vehicle_number VARCHAR(20) NOT NULL, vehicle_type VARCHAR(20));
